@@ -1,1 +1,4 @@
-requests
+requests==2.7.0
+ethereum==0.9.66
+ethereum-serpent==1.8.2
+ipython==3.1.0
