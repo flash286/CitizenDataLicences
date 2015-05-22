@@ -1,10 +1,9 @@
-from ethereum.slogging import configure_logging
-from ethereum.utils import to_string
-from ethereum import abi
+from api.ethereum import configure_logging
+from api.ethereum import to_string
 
 __author__ = 'nikolas'
-from ethereum import transactions, blocks, utils, processblock, slogging
-from ethereum.db import DB as EthDB
+from api.ethereum import transactions, blocks, utils, processblock
+from api.ethereum import DB as EthDB
 import serpent
 
 configure_logging(':trace')
