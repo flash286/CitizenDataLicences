@@ -1,4 +1,6 @@
 import json, requests
+from django.conf import settings
+
 
 class EthereumJSON:
 
@@ -11,7 +13,7 @@ class EthereumJSON:
 
     def sendJSONRequest(self, method, *params):
         data = json.dumps({"jsonrpc":"2.0", "method":method, "params":params, "id":self._getId()})
-        response = requests.post("http://localhost:8080", data=data)
+        response = requests.post(settings.BLOCKCHAIN_RPC_URL, data=data)
         jsondata = response.json()
         if 'result' in jsondata:
             return jsondata['result']

@@ -1,11 +1,9 @@
-from api import ethereumJSON
+from ..jsonrpc.ethereumJSON import EthereumJSON
 
 
-# Not working
 class DatabaseAPI:
-
     def __init__(self):
-        self.json = ethereumJSON.EthereumJSON()
+        self.json = EthereumJSON()
 
     def put(self, db, key, value):
         self.json.sendJSONRequest("db_put", db, key, value)
@@ -18,4 +16,3 @@ class DatabaseAPI:
 
     def getString(self, db, key):
         self.json.sendJSONRequest("db_getString", db, key)
-

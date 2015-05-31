@@ -1,4 +1,5 @@
-requests==2.7.0
-ethereum==0.9.66
-ethereum-serpent==1.8.2
+Django==1.8.2
+gnureadline==6.3.3
 ipython==3.1.0
+git+https://github.com/ethereum/pyethereum.git#egg=ethereum
+requests
