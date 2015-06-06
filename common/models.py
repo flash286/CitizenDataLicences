@@ -1,13 +1,16 @@
 import json
+import binascii
 from django.contrib.auth.models import User
 from django.db import models
 from ethereum.abi import ContractTranslator
+import rlp
+from blockchain.entity import Contract
 from blockchain.jsonrpc.ethereum import EthereumAPI
 
 __author__ = 'nikolas'
 
-class SensorDataManager(models.Manager):
 
+class SensorDataManager(models.Manager):
     def last_record_or_false(self, sensor):
         last_record = self.get_queryset().filter(sensor=sensor).order_by("-timestamp")
         if not last_record:
@@ -16,6 +19,9 @@ class SensorDataManager(models.Manager):
 
 
 class Owner(models.Model):
+    CONTRACT_REPR = Contract
+
+    _contract_obj = None
 
     user = models.OneToOneField(User)
     name = models.CharField(max_length=255)
@@ -27,6 +33,22 @@ class Owner(models.Model):
     contract_abi = models.TextField(default="")
     contract_deployed = models.BooleanField(default=False)
     contract_addr = models.CharField(max_length=255, default="")
+
+    @property
+    def contract_object(self):
+
+        assert len(self.contract_code_pretty) > 0
+
+        if not self.contract_abi:
+            self.compile_contract()
+
+        if not self.contract_addr:
+            self.deploy_contract()
+
+        if not self._contract_obj or not isinstance(self._contract_obj, self.CONTRACT_REPR):
+            self._contract_obj = Contract(self.contract_addr, self.contract_abi)
+
+        return self._contract_obj
 
     def compile_contract(self):
         json_rpc = EthereumAPI()
@@ -47,23 +69,14 @@ class Owner(models.Model):
             "value": 0,
             "data": self.contract_code_lll
         }
+
         result = json_rpc.send_transaction(**params)
         if isinstance(result, str) and result.startswith("0x"):
             self.contract_deployed = True
             self.contract_addr = result
             self.save()
 
-        abi = json.loads(self.contract_abi)
-
-        for i, entity in enumerate(abi):
-            if entity['type']  == 'constructor':
-                del(abi[i])
-
-        raw = json.dumps(abi)
-        translator = ContractTranslator(raw.encode("utf-8"))
-
-        a = translator.encode("sensors", [1])
-        pass
+        res = self.contract_object.call('sensors', 1)
 
     @property
     def python_contract_abi(self):
@@ -82,7 +95,6 @@ class Owner(models.Model):
 
 
 class Transaction(models.Model):
-
     statuses = (
         (1, "HOLD"),
         (2, "SUCCESS"),
@@ -113,7 +125,6 @@ class Sensor(models.Model):
 
 
 class SensorData(models.Model):
-
     sensor = models.ForeignKey(Sensor, related_name="data")
     timestamp = models.DateTimeField(db_index=True)
     value = models.FloatField()

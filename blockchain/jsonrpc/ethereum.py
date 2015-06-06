@@ -85,7 +85,7 @@ class EthereumAPI:
         return self.json.sendJSONRequest("eth_transact", json.dumps({"code": code}))
 
     def call(self, to, data):
-        return self.json.sendJSONRequest("eth_call", json.dumps({"to": to, "data": data}))
+        return self.json.sendJSONRequest("eth_call", dict(to=to, data=data))
 
     def flush(self):
         return self.json.sendJSONRequest("eth_flush")
