@@ -2,11 +2,16 @@ import json
 import binascii
 from ethereum.abi import ContractTranslator
 from blockchain.jsonrpc.ethereum import EthereumAPI
+from common.utils import HexUtils
 
 __author__ = 'nikolas'
 
 
-class Contract:
+class Contract(HexUtils):
+
+    DEFAULT_GAS_PRRICE = "0x9184e72a000"
+    DEFAULT_GAS = "0x1b7740"
+
     _addr = None
     _abi = None
     _transport = None
@@ -31,12 +36,9 @@ class Contract:
 
         return translator
 
-    def bytes_to_hex(self, raw):
-        return binascii.hexlify(raw)
-
     @property
     def addr(self):
-        return self._addr[2:]
+        return self._addr
 
     @property
     def abi(self):
@@ -62,18 +64,18 @@ class Contract:
     def get_data_for_method_call(self, method_name, *args):
         call_data = self.abi.encode(method_name, args)
         call_data = self.bytes_to_hex(call_data)
-        return call_data.decode("ascii")
+        return "0x{}".format(call_data.decode("ascii"))
 
     def transact(self, from_addr, method_name, *args):
         self._validate_method(method_name, *args)
         data = self.get_data_for_method_call(method_name, *args)
         params = dict(
             from_addr=from_addr,
-            to_addr=self._addr,
-            gas="0x1b7740",
-            gasPrice="0x9184e72a000",
-            value="0x0",
-            data="0x" + data
+            to_addr=self.addr,
+            gas=self.DEFAULT_GAS,
+            gasPrice=self.DEFAULT_GAS_PRRICE,
+            value=self.int_to_hex(0),
+            data=data
         )
         result = self.transport.send_transaction(**params)
         return result
@@ -84,10 +86,10 @@ class Contract:
 
         params = {
             "from": from_addr,
-            "to": self._addr,
-            "gas": "0x0",
-            "gasPrice": "0x9184e72a000",
-            "data": "0x" + data
+            "to": self.addr,
+            "gas": self.int_to_hex(0),
+            "gasPrice": self.DEFAULT_GAS_PRRICE,
+            "data": data
         }
 
         result_rpc = self.transport.call(params)
