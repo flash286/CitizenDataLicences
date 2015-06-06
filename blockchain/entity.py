@@ -48,7 +48,7 @@ class Contract:
             self._transport = EthereumAPI()
         return self._transport
 
-    def call(self, method_name,  *args):
+    def _validate_method(self, method_name, *args):
         if method_name not in self.abi.function_data:
             raise NotImplementedError("This method does not exists in {}".format(self.abi))
 
@@ -59,12 +59,39 @@ class Contract:
                 len(args)
             ))
 
+    def get_data_for_method_call(self, method_name, *args):
         call_data = self.abi.encode(method_name, args)
         call_data = self.bytes_to_hex(call_data)
-        call_data = call_data.decode("ascii")
+        return call_data.decode("ascii")
 
-        result_rpc = self.transport.call(self.addr, call_data)
+    def transact(self, from_addr, method_name, *args):
+        self._validate_method(method_name, *args)
+        data = self.get_data_for_method_call(method_name, *args)
+        params = dict(
+            from_addr=from_addr,
+            to_addr=self._addr,
+            gas="0x1b7740",
+            gasPrice="0x9184e72a000",
+            value="0x0",
+            data="0x" + data
+        )
+        result = self.transport.send_transaction(**params)
+        return result
 
+    def call(self, from_addr, method_name, *args):
+        self._validate_method(method_name, *args)
+        data = self.get_data_for_method_call(method_name, *args)
+
+        params = {
+            "from": from_addr,
+            "to": self._addr,
+            "gas": "0x0",
+            "gasPrice": "0x9184e72a000",
+            "data": "0x" + data
+        }
+
+        result_rpc = self.transport.call(params)
+        result_rpc = self.abi.decode(method_name, result_rpc)
         return result_rpc
 
     def balance(self):

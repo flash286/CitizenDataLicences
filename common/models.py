@@ -65,18 +65,19 @@ class Owner(models.Model):
             "from_addr": self.block_chain_account,
             "to_addr": "",
             "gas": 1000000,
-            "gasPrice": 1000,
+            "gasPrice": 10000000000000,
             "value": 0,
             "data": self.contract_code_lll
         }
 
-        result = json_rpc.send_transaction(**params)
-        if isinstance(result, str) and result.startswith("0x"):
+        if not self.contract_deployed:
+            result = json_rpc.send_transaction(**params)
             self.contract_deployed = True
             self.contract_addr = result
             self.save()
 
-        res = self.contract_object.call('sensors', 1)
+        res = self.contract_object.transact(self.block_chain_account, "createSensor", 1, 1, 1)
+        res = self.contract_object.call(self.block_chain_account, 'sensors', 1)
 
     @property
     def python_contract_abi(self):
