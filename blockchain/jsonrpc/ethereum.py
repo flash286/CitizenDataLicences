@@ -137,3 +137,7 @@ class EthereumAPI:
 
     def submit_work(self, work):
         return self.json.sendJSONRequest("eth_submitWork", work)
+
+    def sha3(self, *args):
+        return self.json.sendJSONRequest("web3_sha3", *args)
+

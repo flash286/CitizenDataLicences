@@ -157,6 +157,18 @@ class Sensor(models.Model):
     def __str__(self):
         return "<{}>: {}".format(self.owner.name, self.name)
 
+    def data_dt_start(self):
+        data = self.data.order_by('timestamp').first()
+        if not data:
+            return 0
+        return data.timestamp
+
+    def data_dt_end(self):
+        data = self.data.order_by('-timestamp').first()
+        if not data:
+            return 0
+        return data.timestamp
+
     class Meta:
         app_label = "common"
 

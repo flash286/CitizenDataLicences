@@ -66,7 +66,7 @@ class Contract(HexUtils):
         call_data = self.bytes_to_hex(call_data)
         return "0x{}".format(call_data.decode("ascii"))
 
-    def transact(self, from_addr, method_name, *args):
+    def transact(self, from_addr, method_name, *args, value=0):
         self._validate_method(method_name, *args)
         data = self.get_data_for_method_call(method_name, *args)
         params = dict(
@@ -74,7 +74,7 @@ class Contract(HexUtils):
             to_addr=self.addr,
             gas=self.DEFAULT_GAS,
             gasPrice=self.DEFAULT_GAS_PRRICE,
-            value=self.int_to_hex(0),
+            value=self.int_to_hex(value),
             data=data
         )
         result = self.transport.send_transaction(**params)

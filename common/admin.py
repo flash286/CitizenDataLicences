@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.forms import BaseInlineFormSet
 
 from blockchain.jsonrpc.ethereum import EthereumAPI
-from common import Owner, Sensor, SensorData
+from common import Owner, Sensor, SensorData, Transaction
 
 __author__ = 'nikolas'
 
@@ -40,9 +40,13 @@ class OwnerAdmin(admin.ModelAdmin):
 
 @admin.register(Sensor)
 class SensorAdmin(admin.ModelAdmin):
-    list_display = ["name", "owner", 'blockchain_value']
+    list_display = ["name", "owner", 'blockchain_value', 'data_dt_start', 'data_dt_end']
     inlines = [SensorDataInline]
 
 @admin.register(SensorData)
 class SensorDataAdmin(admin.ModelAdmin):
     list_display = ['sensor', 'timestamp', 'value']
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['hash_id', 'cost', 'dt_start', 'dt_end', 'status']
