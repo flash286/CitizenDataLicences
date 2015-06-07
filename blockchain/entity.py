@@ -91,9 +91,8 @@ class Contract(HexUtils):
             "gasPrice": self.DEFAULT_GAS_PRRICE,
             "data": data
         }
-
         result_rpc = self.transport.call(params)
-        result_rpc = self.abi.decode(method_name, result_rpc)
+        result_rpc = self.abi.decode(method_name, self.hex_to_bytes(result_rpc))
         return result_rpc
 
     def balance(self):

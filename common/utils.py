@@ -4,14 +4,20 @@ __author__ = 'nikolas'
 
 
 class HexUtils:
-    def int_to_hex(self, number):
-        return str(hex(number))
+    @classmethod
+    def int_to_hex(cls, number: int) -> str:
+        return hex(number)
 
-    def hex_to_int(self, number):
+    @classmethod
+    def hex_to_int(cls, number: str) -> int:
         return int(number, 16)
 
-    def bytes_to_hex(self, raw):
+    @classmethod
+    def bytes_to_hex(cls, raw: bytes) -> str:
         return binascii.hexlify(raw)
 
-    def hex_to_bytes(self):
-        pass
+    @classmethod
+    def hex_to_bytes(cls, raw: str) -> bytes:
+        if raw.startswith('0x'):
+            raw = raw[2:]
+        return bytes.fromhex(raw)
