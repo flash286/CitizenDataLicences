@@ -1,16 +1,34 @@
+from datetime import timezone
 import json
-import binascii
+
 from django.contrib.auth.models import User
+
 from django.db import models
-from ethereum.abi import ContractTranslator
-import rlp
+
 from blockchain.entity import Contract
 from blockchain.jsonrpc.ethereum import EthereumAPI
 
 __author__ = 'nikolas'
 
 
+class SensorDataQS(models.QuerySet):
+    def create(self, **kwargs):
+        sensor = kwargs['sensor']
+        owner = sensor.owner
+        contract = owner.contract_object
+        ts = int(kwargs['timestamp'].replace(tzinfo=timezone.utc).timestamp())
+        first_data = kwargs.pop("first_data", False)
+        if first_data:
+            contract.transact(owner.block_chain_account, "createSensor", sensor.id, sensor.fee, ts)
+        else:
+            contract.transact(owner.block_chain_account, "createData", sensor.id, ts)
+        super(SensorDataQS, self).create(**kwargs)
+
+
 class SensorDataManager(models.Manager):
+    def get_queryset(self):
+        return SensorDataQS(self.model, using=self._db)
+
     def last_record_or_false(self, sensor):
         last_record = self.get_queryset().filter(sensor=sensor).order_by("-timestamp")
         if not last_record:
@@ -42,7 +60,7 @@ class Owner(models.Model):
         if not self.contract_abi:
             self.compile_contract()
 
-        if not self.contract_addr:
+        if not self.contract_addr or not self.contract_deployed:
             self.deploy_contract()
 
         if not self._contract_obj or not isinstance(self._contract_obj, self.CONTRACT_REPR):
@@ -75,9 +93,6 @@ class Owner(models.Model):
             self.contract_deployed = True
             self.contract_addr = result
             self.save()
-
-        res = self.contract_object.transact(self.block_chain_account, "createSensor", 1, 1, 1)
-        res = self.contract_object.call(self.block_chain_account, 'sensors', 1)
 
     @property
     def python_contract_abi(self):
@@ -117,6 +132,16 @@ class Sensor(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(default="")
     owner = models.ForeignKey(Owner, related_name="sensors")
+    fee = models.PositiveIntegerField(default=0)
+
+    def blockchain_value(self):
+        contract = self.owner.contract_object
+        result = contract.call(self.owner.block_chain_account, 'sensors', self.pk)
+        return {
+            "dt_start": result[1],
+            "dt_end": result[2],
+            "fee": result[3]
+        }
 
     def __str__(self):
         return "<{}>: {}".format(self.owner.name, self.name)
@@ -131,6 +156,10 @@ class SensorData(models.Model):
     value = models.FloatField()
 
     objects = SensorDataManager()
+
+    @property
+    def unix_timestamp(self):
+        return self.timestamp.replace(tzinfo=timezone.utc).timestamp()
 
     class Meta:
         app_label = "common"

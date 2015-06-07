@@ -40,5 +40,9 @@ class OwnerAdmin(admin.ModelAdmin):
 
 @admin.register(Sensor)
 class SensorAdmin(admin.ModelAdmin):
-    list_display = ["name", "owner"]
+    list_display = ["name", "owner", 'blockchain_value']
     inlines = [SensorDataInline]
+
+@admin.register(SensorData)
+class SensorDataAdmin(admin.ModelAdmin):
+    list_display = ['sensor', 'timestamp', 'value']

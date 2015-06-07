@@ -18,12 +18,21 @@ class Command(BaseCommand):
             if last_record:
                 print(last_record.timestamp)
                 start_time = last_record.timestamp + datetime.timedelta(seconds=1)
+                first_record = False
+            else:
+                first_record = True
             for interval in range(1, 100):
                 dt = start_time + datetime.timedelta(seconds=interval * 60)
                 value = data_range()
-                SensorData.objects.create(
+                params = dict(
                     sensor=sensor,
                     timestamp=dt,
                     value=value
                 )
+                if first_record:
+                    params.update(dict(
+                        first_data=first_record
+                    ))
+                SensorData.objects.create(**params)
+                first_record = False
                 self.stdout.write("For {} add record: <{}: {}>".format(sensor, dt, value))
