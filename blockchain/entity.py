@@ -95,5 +95,8 @@ class Contract(HexUtils):
         result_rpc = self.abi.decode(method_name, self.hex_to_bytes(result_rpc))
         return result_rpc
 
-    def balance(self):
-        raise NotImplementedError()
+    def balance(self, owner=None):
+        if not owner:
+            owner = self.addr
+        result_rpc = self.transport.balance_at(owner)
+        return self.hex_to_int(result_rpc)

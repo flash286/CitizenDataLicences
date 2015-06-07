@@ -55,7 +55,7 @@ class EthereumAPI:
         return self.json.sendJSONRequest("eth_number")
 
     def balance_at(self, address):
-        return self.json.sendJSONRequest("eth_getBalance", address)
+        return self.json.sendJSONRequest("eth_getBalance", address, 'latest')
 
     def state_at(self, address, index):
         return self.json.sendJSONRequest("eth_stateAt", address, index)

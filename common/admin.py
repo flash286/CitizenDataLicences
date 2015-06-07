@@ -35,7 +35,7 @@ class OwnerAdmin(admin.ModelAdmin):
 
     compile_code.short_description = "Compile code to lll"
     actions = [compile_code, deploy_contract]
-    list_display = ['name', 'block_chain_account', 'balance']
+    list_display = ['name', 'block_chain_account', 'blockchain_balance', 'contract_balance']
 
 
 @admin.register(Sensor)

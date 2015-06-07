@@ -68,6 +68,17 @@ class Owner(models.Model):
 
         return self._contract_obj
 
+    @property
+    def blockchain_balance(self):
+        balance = self.contract_object.balance(self.block_chain_account)
+        self.balance = balance
+        self.save()
+        return balance
+
+    @property
+    def contract_balance(self):
+        return self.contract_object.balance()
+
     def compile_contract(self):
         json_rpc = EthereumAPI()
         result = json_rpc.compile_solidity(self.contract_code_pretty)
