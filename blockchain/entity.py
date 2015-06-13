@@ -83,7 +83,6 @@ class Contract(HexUtils):
     def call(self, from_addr, method_name, *args):
         self._validate_method(method_name, *args)
         data = self.get_data_for_method_call(method_name, *args)
-
         params = {
             "from": from_addr,
             "to": self.addr,
